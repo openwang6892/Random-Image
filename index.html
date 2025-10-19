@@ -1,203 +1,180 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>随机图片api</title>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <style>
-            html,
-            body {
-                margin: 0;
-                color: #424242;
-                font-weight: 300;
-                font-family: "-apple-system", "BlinkMacSystemFont", "Helvetica Neue", "PingFang SC", "Microsoft YaHei",
-                    "Source Han Sans SC", "Noto Sans CJK SC", "WenQuanYi Micro Hei", "sans-serif";
-                font-size: 16px;
-            }
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>随机图片 API · 说明与教程</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --bg:#f0f4f8;--card:rgba(255,255,255,.75);--text:#333;--theme:#79c37c;
+  --radius:14px;--shadow:0 8px 32px rgba(0,0,0,.15);
+}
+@media (prefers-color-scheme:dark){
+:root{--bg:#121212;--card:rgba(30,30,30,.75);--text:#eee;--shadow:0 8px 32px rgba(0,0,0,.35);}
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","PingFang SC","Microsoft YaHei",sans-serif}
+body{background:linear-gradient(135deg,#a0e5e4,#79c37c);color:var(--text);line-height:1.6}
+h1,h2,h3{font-weight:600;margin-bottom:.5em}
+h1{font-size:2.5rem}h2{font-size:1.75rem}h3{font-size:1.25rem}
+a{color:var(--theme);text-decoration:none}
+a:hover{text-decoration:underline}
+code{background:rgba(0,0,0,.05);padding:.2em .4em;border-radius:4px;font-size:.95em}
+pre{background:rgba(0,0,0,.05);padding:1rem;border-radius:8px;overflow:auto;font-size:.9rem;position:relative}
+button{cursor:pointer;border:none;background:var(--theme);color:#fff;padding:.6rem 1.2rem;border-radius:8px;transition:background .3s;font-size:.95rem}
+button:hover{background:#5fa862}
+.copy{position:absolute;top:.5rem;right:.5rem;font-size:.75rem;padding:.3rem .6rem}
+#curtain{position:fixed;inset:0;background:#000;z-index:999;display:flex;align-items:center;justify-content:center;color:#fff;flex-direction:column;text-align:center}
+.hidden{display:none}
+.container{width:90%;max-width:800px;margin:4rem auto}
+.card{background:var(--card);backdrop-filter:blur(12px);border-radius:var(--radius);box-shadow:var(--shadow);padding:2rem;margin-bottom:2rem;transition:transform .3s}
+.card:hover{transform:translateY(-4px)}
+.input-group{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
+.input-group input{flex:1 1 240px;padding:.5rem .75rem;border:1px solid rgba(0,0,0,.1);border-radius:6px;font-size:.95rem}
+#toc{position:sticky;top:1rem;align-self:flex-start;background:var(--card);padding:1rem;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:2rem}
+#toc li{list-style:none;margin:.25rem 0}
+#toc a{display:block;padding:.25rem .5rem;border-radius:6px}
+#toc a:hover{background:rgba(0,0,0,.05)}
+#back-to-toc{position:fixed;bottom:2rem;right:2rem;width:3rem;height:3rem;border-radius:50%;background:var(--theme);color:#fff;border:none;box-shadow:var(--shadow);opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+#back-to-toc.show{opacity:1;visibility:visible}
+</style>
+</head>
 
-            * {
-                box-sizing: border-box;
-            }
+<body>
+<!-- 幕布 -->
+<div id="curtain">
+  <h1>随机图片 API</h1>
+  <p>点击任意位置查看完整文档</p>
+</div>
 
-            header {
-                padding: 40vh 0 8vh 0;
-                text-align: center;
-                font-weight: 100;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: space-between;
-                height: 100vh;
-                overflow: hidden;
-                background: #a0e5e4;
-            }
+<div id="content" class="hidden">
+<div class="container">
+  <!-- 目录 -->
+  <nav id="toc">
+    <h3>目录</h3>
+    <ul>
+      <li><a href="#sec-jump">302 跳转</a></li>
+      <li><a href="#sec-json">JSON 返回</a></li>
+      <li><a href="#sec-jq">jq 过滤教程</a></li>
+      <li><a href="#sec-id">指定 ID</a></li>
+      <li><a href="#sec-raw">直链输出</a></li>
+      <li><a href="#sec-batch">批量下载</a></li>
+      <li><a href="#sec-fast">高速并发</a></li>
+    </ul>
+  </nav>
 
-            h1,
-            h2,
-            h3 {
-                font-weight: 400 !important;
-                font-weight: bold;
-                margin: 0;
-            }
+  <!-- 1. 302 跳转 -->
+  <section id="sec-jump" class="card">
+    <h2>1. 302 跳转（默认）</h2>
+    <p>请求 <code>/api</code> 将随机跳转至一张图片。</p>
+    <div class="input-group">
+      <input id="link302" value="https://example.net/api" readonly>
+      <button onclick="copyLink('link302')">复制</button>
+      <a class="btn" href="/api" target="_blank">立即测试</a>
+    </div>
+  </section>
 
-            h1 {
-                font-size: 3.5rem;
-            }
+  <!-- 2. JSON 返回 -->
+  <section id="sec-json" class="card">
+    <h2>2. JSON 返回</h2>
+    <p>访问 <code>/api?json</code> 或 <code>/api?type=json</code> 获得结构化数据。</p>
+    <div class="input-group">
+      <input id="linkJson" value="https://example.net/api?json" readonly>
+      <button onclick="copyLink('linkJson')">复制</button>
+      <a class="btn" href="/api?json" target="_blank">查看 JSON</a>
+    </div>
+    <pre id="jsonPreview">{"id":3,"url":"https://z3.ax1x.com/2021/08/19/fqDucQ.png"}</pre>
+  </section>
 
-            h2 {
-                font-size: 2rem;
-                font-weight: 300;
-            }
+  <!-- 3. jq 过滤教程 -->
+  <section id="sec-jq" class="card">
+    <h2>3. jq 过滤教程</h2>
+    <h3>只提取图片 URL</h3>
+    <pre>curl -s https://example.net/api?json | jq -r .url</pre>
+    <h3>同时获取 id 与 url</h3>
+    <pre>curl -s https://example.net/api?json | jq '{id, url}'</pre>
+    <h3>循环下载 10 张</h3>
+    <pre>for i in {1..10}; do
+  url=$(curl -s https://example.net/api?json | jq -r .url)
+  curl -O "$url"
+done</pre>
+  </section>
 
-            h3 {
-                font-size: 1.5rem;
-                font-weight: 300;
-            }
+  <!-- 4. 指定 ID -->
+  <section id="sec-id" class="card">
+    <h2>4. 指定图片 ID</h2>
+    <p>请求 <code>/api?id=数字</code>；搭配 <code>&json</code> 返回 JSON。</p>
+    <div class="input-group">
+      <input id="idInput" type="number" min="1" max="999" value="5">
+      <button onclick="goId()">跳转</button>
+      <button onclick="goIdJson()">JSON</button>
+    </div>
+  </section>
 
-            #scroll-down {
-                background-color: transparent;
-                margin-top: 2rem;
-                width: 2rem;
-                height: 2rem;
-                border-radius: 50%;
-                border: 2px solid #424242;
-                cursor: pointer;
-                animation: bounce 2s infinite 2s;
-            }
+  <!-- 5. 直链输出 -->
+  <section id="sec-raw" class="card">
+    <h2>5. 直链输出（raw）</h2>
+    <p>服务器直接输出图片二进制（需后端开启）。</p>
+    <div class="input-group">
+      <input id="linkRaw" value="https://example.net/api?raw" readonly>
+      <button onclick="copyLink('linkRaw')">复制</button>
+      <a class="btn" href="/api?raw" target="_blank">查看原图</a>
+    </div>
+  </section>
 
-            #scroll-down::before {
-                display: block;
-                content: "";
-                transform: rotate(-45deg) translate(0.15rem, 0.15rem);
-                width: 0.4rem;
-                height: 0.4rem;
-                border: 2px solid #424242;
-                border-width: 0px 0 2px 2px;
-            }
+  <!-- 6. 批量下载 -->
+  <section id="sec-batch" class="card">
+    <h2>6. 批量下载 50 张</h2>
+    <pre>seq 50 | xargs -P8 -I {} sh -c 'curl -s https://example.net/api?json | jq -r .url | xargs -I % curl -O %'</pre>
+  </section>
 
-            a {
-                text-decoration: none;
-                color: #79c37c;
-            }
+  <!-- 7. 高速并发采集 -->
+  <section id="sec-fast" class="card">
+    <h2>7. 高速并发采集示例</h2>
+    <pre># 获取 200 条 JSON 并提取 URL，最多 50 并发
+seq 200 | xargs -P50 -I {} sh -c 'curl -s https://example.net/api?json | jq -r .url' > url.list</pre>
+  </section>
 
-            main {
-                padding: 1vw;
-            }
+  <button id="back-to-toc" onclick="document.querySelector('#toc').scrollIntoView({behavior:'smooth'})">▲</button>
+</div>
+</div>
 
-            section {
-                padding: 1rem;
-            }
+<script>
+// 幕布点击消失
+const curtain=document.getElementById('curtain');
+const content=document.getElementById('content');
+curtain.addEventListener('click',()=>{
+  curtain.style.opacity=0;
+  setTimeout(()=>{curtain.remove();content.classList.remove('hidden');},300);
+});
 
-            footer {
-                padding: 1vh;
-                text-align: center;
-                background-color: #aaaaaa;
-            }
+// 替换示例域名为当前源
+document.querySelectorAll('input').forEach(inp=>{
+  inp.value=inp.value.replace(/https:\/\/example.net/g,location.origin);
+});
+document.querySelectorAll('a[href^="https://example.net"]').forEach(a=>{
+  a.href=a.href.replace('https:\/\/example.net',location.origin);
+});
 
-            footer a {
-                color: #ddd;
-            }
+// 复制
+function copyLink(id){
+  const inp=document.getElementById(id);
+  inp.select();document.execCommand('copy');inp.blur();
+  alert('已复制：'+inp.value);
+}
 
-            footer a:hover {
-                text-decoration: underline;
-            }
+// ID 跳转
+function goId(){
+  location.href='/api?id='+document.getElementById('idInput').value;
+}
+function goIdJson(){
+  location.href='/api?id='+document.getElementById('idInput').value+'&json';
+}
 
-            @keyframes bounce {
-                0%,
-                100%,
-                20%,
-                50%,
-                80% {
-                    transform: translateY(0);
-                }
-
-                40% {
-                    transform: translateY(-10px);
-                }
-
-                60% {
-                    transform: translateY(-5px);
-                }
-            }
-
-            pre {
-                background-color: #f5f5f5;
-                padding: 2rem 1rem;
-                border-radius: 4px;
-                overflow: auto;
-            }
-        </style>
-    </head>
-
-    <body>
-        <header>
-            <section>
-                <h1>随机图片API</h1>
-                <h3>说明文档</h3>
-            </section>
-            <button id="scroll-down"></button>
-        </header>
-        <main>
-            <section>
-                <h2><strong>假定 API 部署到 https://example.net/</strong></h2>
-                <small>php</small>
-                <p>
-                    访问
-                    <a href="https://example.net/api">https://example.net/api</a>
-                    ，跳转至图片地址
-                </p>
-                <p>
-                    访问
-                    <a href="https://example.net/api/?id=数字">https://example.net/api/?id=数字</a>
-                    ，跳转至指定图片
-                </p>
-                <p>
-                    示例
-                    <a href="https://example.net/api/?type=json&id=3">https://example.net/api/?id=3</a>
-                </p>
-                <p>
-                    示例
-                    <a href="https://example.net/api/?type=json&id=3">https://example.net/api/?id=3&json</a>
-                </p>
-            </section>
-            <section>
-                <h2>
-                    <strong>
-                        访问
-                        <a href="https://example.net/api/?raw">https://example.net/api/?raw</a>
-                    </strong>
-                </h2>
-                <p>服务器读取后输出，默认关闭</p>
-            </section>
-            <section>
-                <h2>
-                    <strong>
-                        访问
-                        <a href="https://example.net/api/?json">https://example.net/api/?json</a>
-                    </strong>
-                </h2>
-                <p>输出json</p>
-                <pre>
-{"id":3,url":"https://z3.ax1x.com/2021/08/19/fqDucQ.png"}   
-</pre
-                >
-            </section>
-        </main>
-        <script>
-            document.querySelector("main").innerHTML = document
-                .querySelector("main")
-                .innerHTML.replace(/https:\/\/example.net/g, location.origin);
-
-            document.getElementById("scroll-down").addEventListener("click", function () {
-                document.querySelector("main").scrollIntoView({
-                    behavior: "smooth",
-                });
-            });
-        </script>
-        <footer>
-            <p>
-                <a href="https://github.com/yieldray/Random-Picture">Source Code</a>
-            </p>
-        </footer>
-    </body>
+// 返回目录按钮显隐
+const topBtn=document.getElementById('back-to-toc');
+window.addEventListener('scroll',()=>{
+  window.scrollY>300?topBtn.classList.add('show'):topBtn.classList.remove('show');
+});
+</script>
+</body>
 </html>
