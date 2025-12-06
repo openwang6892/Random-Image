@@ -56,6 +56,17 @@ yarn serve:php
 
 ## 部署
 
+### Render 一键部署
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+要手动部署到 Render，请创建一个 Web Service 并使用以下设置：
+- **Runtime**: Node.js
+- **Build Command**: `npm install`
+- **Start Command**: `npm start`
+- **Environment**: Production
+
+
 ### Vercel 部署
 
 支持一键部署到 Vercel：
@@ -67,4 +78,4 @@ yarn serve:php
 
 ## 许可证
 
-本项目采用 MIT 许可证 - 详见 [LICENSE](./LICENSE) 文件。
+本项目采用 GNU General Public License v3.0 (GPLv3) 许可证 - 详见 [LICENSE](./LICENSE) 文件。
