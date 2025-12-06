@@ -1,0 +1,30 @@
+{
+  "name": "random-image",
+  "version": "1.0.0",
+  "description": "随机图片 API - 通过随机发送 url.csv 文件中给出的图床链接来实现一个随机图片 API",
+  "main": "test/develop.mjs",
+  "scripts": {
+    "start": "node test/server.mjs",
+    "dev": "node test/server.mjs",
+    "serve": "node test/server.mjs",
+    "serve:node": "node test/server.mjs",
+    "serve:php": "php -S localhost:8000 -t .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "random-image",
+    "api",
+    "php",
+    "node",
+    "deno"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

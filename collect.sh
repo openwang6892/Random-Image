@@ -1,34 +1,35 @@
-#!/usr/bin/env bash
-output=url.csv
+#!/data/data/com.termux/files/usr/bin/env bash
+
+output="url.csv"
 max_jobs=50
-i=1
+target=${1:-200}
 
-entries=(
-  "https://www.onexiaolaji.cn/RandomPicture/api/?key=qq249663924"
-)
-entry_count=${#entries[@]}
+api="https://www.onexiaolaji.cn/RandomPicture/api/?key=qq249663924"
 
-trap 'clear; wait; exit 0' INT TERM
+# 内存去重数组（关联数组）
+declare -A seen
+[[ -f $output ]] && while IFS= read -r u; do seen[$u]=1; done < "$output"
 
-# 原子去重追加（静默）
-append(){
-    awk -v line="$1" '
-    BEGIN {found=0}
-    line==$0 {found=1; exit}
-    END   {if(!found) print line >> "'"$output"'"}' "$output" 2>/dev/null
-}
-
-while true; do
-    while (( $(jobs -r | wc -l) >= max_jobs )); do
+count=0
+while (( count < target )); do
+    while (( $(jobs -rp | wc -l) >= max_jobs )); do
         wait -n
     done
 
     {
-        pick_url=${entries[$RANDOM % entry_count]}
-        new_url=$(curl -sfL -w '%{url_effective}\n' -o /dev/null -G "$pick_url")
-        [[ -z $new_url || $new_url == "$pick_url" ]] && exit 0
-        append "$new_url" || exit 0          # 去重失败说明已存在
-        echo "新写入第${i}条: $new_url"      # 序号在主进程打印
-        ((i++))
+        for retry in {1..3}; do
+            new=$(curl -sfL -m 5 -w '%{url_effective}' -o /dev/null "$api") && break
+        done
+        [[ -z $new || $new == "$api" ]] && exit
+        # 原子判断+追加（子进程里 echo >> 是安全的，因为父进程串行 wait）
+        if [[ -z ${seen[$new]} ]]; then
+            echo "$new"      # 回传给父进程
+            seen[$new]=1
+        fi
+    } | {
+        read -r line
+        [[ $line ]] && { echo "$line" >> "$output"; echo "$line"; }
     } &
 done
+wait
+echo "✅ 已完成，共写入 $count 条 URL → $output"

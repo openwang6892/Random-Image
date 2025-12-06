@@ -1,60 +1,70 @@
-# Random-Picture
+# Random-Image
 
-通过随机发送 `url.csv` 文件中给出的图床链接来实现一个随机图片 API  
-本仓库含 php(vercel), deno(deno.dev) 版本，API 一致  
-另外给出了 node.js 实现，仅供测试  
-作为一个简易的 API， 切勿在 `url.csv` 中添加过多的图片地址
+通过随机发送 `url.csv` 文件中给出的图床链接来实现一个随机图片 API。支持 PHP 和 Node.js 版本。
 
-## 演示
+## 特性
 
--   <https://random-picture.vercel.app/> _(vercel, php 版本)_
--   <https://random-picture.vercel.app/random.jpg>
--   <https://random-picture.vercel.app/api/>
--   <https://random-picture.vercel.app/api/?json>
+- 支持多种访问方式：302跳转、JSON返回、Raw图片输出
+- 使用Yarn一键启动本地开发服务器
+- 支持指定ID访问特定图片
+- 支持伪静态URL访问（如 `/1.jpg`）
+- 响应式设计的API文档页面
 
--   <https://rand.deno.dev/> (deno 版本)
--   <https://rand.deno.dev/?json>
--   <https://rand.deno.dev/?raw>
--   <https://rand.deno.dev/?id=3>
--   <https://rand.deno.dev/3.jpg>
--   <https://rand.deno.dev/random.png?raw>
+## 快速开始
 
-> 演示图片来自<https://www.pixiv.net/users/8236670>
+### 使用 Yarn 启动
 
-## php 部署到 Vercel
+```bash
+# 安装依赖
+yarn install
 
-fork 后，修改自己仓库的 `url.csv`，然后在 Vercel 平台上导入自己的项目  
-你也可以直接修改<https://github.com/YieldRay/Random-Picture/blob/master/url.csv>来创建 fork  
+# 启动 Node.js 服务器 (默认端口: 8000)
+yarn start
+# 或
+yarn serve
+
+# 启动 PHP 服务器 (需要PHP环境)
+yarn serve:php
+```
+
+### 环境变量
+
+- `PORT` - 设置服务器端口（默认: 8000）
+- `RECORD_PATH` - 设置自定义的 url.csv 文件路径（默认: ./url.csv）
+
+## API 使用方法
+
+启动服务器后，您可以使用以下 API 端点：
+
+- `http://localhost:8000/api` - 随机跳转到一张图片
+- `http://localhost:8000/api?json` - 返回 JSON 格式的图片信息
+- `http://localhost:8000/api?id=1` - 获取指定 ID 的图片
+- `http://localhost:8000/api?raw` - 在全屏页面中查看图片
+- `http://localhost:8000/1.jpg` - 伪静态 URL 访问指定 ID 图片
+- `http://localhost:8000/` - 访问API文档页面
+
+## url.csv 文件
+
+项目根目录下的 `url.csv` 文件包含所有可用的图片 URL，每行一个 URL。
+
+## 项目结构
+
+- `api/index.php` - PHP 版本的API实现
+- `test/server.mjs` - Node.js 版本的API实现
+- `index.html` - API文档页面
+- `url.csv` - 图片URL列表
+
+## 部署
+
+### Vercel 部署
+
+支持一键部署到 Vercel：
 [![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/import/git?s=https%3A%2F%2Fgithub.com%2FYieldRay%2FRandom-Picture)
 
-## php 部署到虚拟主机
+### 本地虚拟主机
 
-支持 php >= 5.3  
-直接将下载项目然后上传至虚拟主机即可，此时 API 路径在 `./api` 文件夹下  
-或者下载项目的 `./api/index.php` 和 `./url.csv` ，将这两个文件上传至同一目录即可
+支持 PHP >= 5.3，直接上传项目文件到虚拟主机即可。
 
-## deno 部署到 deno.dev
+## 许可证
 
-Deno 版本需要你能够托管一个文本文件，文件格式同 `./url.csv`  
-获取这个文本文件的链接。例如：`https://raw.githubusercontents.com/YieldRay/Random-Picture/master/url.csv`  
-[![Deploy to Deno](https://deno.com/deno-deploy-button.svg)](https://dash.deno.com/new?url=https://raw.githubusercontent.com/YieldRay/Random-Picture/master/test/deno.ts&env=RECORD_URL)点击此按钮  
-将链接填入环境变量  
-![deno.png](https://s2.loli.net/2022/04/28/ajWebXNYfw7Mtpv.png)  
-也可以部署后在此修改环境变量  
-![deno2.png](https://s2.loli.net/2022/04/28/VtMBlj1Uuxysboc.png)
-
-## php 伪静态
-
-伪静态是可选的。  
-开启伪静态后支持以<https://example.net/:id.png>形式访问  
-例如 <https://random-picture.vercel.app/1.jpg> <https://random-picture.vercel.app/2.jpg>  
-Apache 和 Vercel 环境无需配置，默认支持伪静态。  
-Nginx 参照以下配置：
-
-```nginx
-location / {
-        if (!-e $request_filename) {
-            rewrite  ^(\w)*\.(?:jpg|jpeg|png|gif|bmp|webp)$  /api/index.php?id=$1  last;
-        }
-}
-```
+本项目采用 MIT 许可证 - 详见 [LICENSE](./LICENSE) 文件。
