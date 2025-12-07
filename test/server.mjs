@@ -35,7 +35,18 @@ try {
 const port = process.env.PORT || 8000;
 const server = http.createServer(async (req, res) => {
   try {
-    const url = new URL("http://localhost" + req.url);
+    // 验证并处理请求URL
+    const fullUrl = "http://localhost" + req.url;
+    let url;
+    try {
+      url = new URL(fullUrl);
+    } catch (e) {
+      console.error(`Invalid request URL: ${req.url}`, e.message);
+      res.writeHead(400, { "Content-Type": "text/plain" });
+      res.write("Bad Request: Invalid URL format");
+      res.end();
+      return;
+    }
     
     // 处理根路径，返回index.html
     if (req.url === "/" || req.url === "/index.html") {

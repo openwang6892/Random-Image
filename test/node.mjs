@@ -15,7 +15,16 @@ const imagesArray = ["https://http.cat/503"];
 })();
 
 export default async function (req /*: http.IncomingMessage*/, res /*: http.ServerResponse*/) {
-    const url = new URL("http://localhost" + req.url);
+    let url;
+    try {
+        url = new URL("http://localhost" + req.url);
+    } catch (e) {
+        console.error(`Invalid request URL: ${req.url}`, e.message);
+        res.writeHead(400, { "Content-Type": "text/plain" });
+        res.write("Bad Request: Invalid URL format");
+        res.end();
+        return;
+    }
     if (req.url === "/favicon.ico") {
         res.writeHead(404);
         res.end();
