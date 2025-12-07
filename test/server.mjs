@@ -86,6 +86,16 @@ const server = http.createServer(async (req, res) => {
     const remoteURL = imagesArray[id];
     console.log(`send ${id} of ${imagesArray.length} with ${req.url}`);
     
+    // 验证URL格式
+    let isValidURL = false;
+    try {
+      new URL(remoteURL);
+      isValidURL = true;
+    } catch (e) {
+      console.error(`Invalid URL: ${remoteURL}`);
+      isValidURL = false;
+    }
+    
     // 调整发送格式json/raw/302
     if (searchParams.has("json")) {
       res.writeHead(200, {
@@ -93,7 +103,7 @@ const server = http.createServer(async (req, res) => {
         "Access-Control-Allow-Origin": "*",
         "Cache-Control": "no-cache",
       });
-      res.write(JSON.stringify({ id, url: remoteURL }));
+      res.write(JSON.stringify({ id, url: isValidURL ? remoteURL : "https://http.cat/503" }));
       res.end();
     } else if (searchParams.has("raw")) {
       // 默认全屏显示图片
@@ -103,6 +113,7 @@ const server = http.createServer(async (req, res) => {
         "Cache-Control": "no-cache",
       });
       
+      const imageUrl = isValidURL ? remoteURL : "https://http.cat/503";
       const html = `
 <!DOCTYPE html>
 <html>
@@ -133,15 +144,16 @@ const server = http.createServer(async (req, res) => {
 </head>
 <body>
   <div class="container">
-    <img src="${remoteURL}" alt="全屏图片">
+    <img src="${imageUrl}" alt="全屏图片">
   </div>
 </body>
 </html>`;
       res.write(html);
       res.end();
     } else {
+      const redirectURL = isValidURL ? remoteURL : "https://http.cat/503";
       res.writeHead(302, {
-        Location: remoteURL,
+        Location: redirectURL,
         "Cache-Control": "no-cache",
       });
       res.end();

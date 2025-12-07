@@ -30,18 +30,21 @@ if (strlen($id) > 0 && is_numeric($id) && $id >= 0) {
     $id = array_rand($imgs_array);
 }
 
+// 验证URL格式
+$isValidURL = filter_var($imgs_array[$id], FILTER_VALIDATE_URL) !== false;
+$targetURL = $isValidURL ? $imgs_array[$id] : 'https://http.cat/503';
 
 if (has_query('json')) {
     header('Access-Control-Allow-Origin: *');
     header('Content-Type: application/json');
-    echo json_encode(array('id' => $id, 'url' => $imgs_array[$id]));
+    echo json_encode(array('id' => $id, 'url' => $targetURL));
 } else if (has_query('raw')) {
     if (!ALLOW_RAW_OUTPUT) {
         header('HTTP/1.1 403 Forbidden');
         exit();
     }
     // 获取图片内容并输出
-    $image_content = file_get_contents($imgs_array[$id]);
+    $image_content = file_get_contents($targetURL);
     if ($image_content !== false) {
         // 尝试检测内容类型，否则默认为image/png
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -55,7 +58,7 @@ if (has_query('json')) {
     }
 } else {
     header('Referrer-Policy: no-referrer');
-    header('Location: ' . $imgs_array[$id]);
+    header('Location: ' . $targetURL);
 }
 
 exit();

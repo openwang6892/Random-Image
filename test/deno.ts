@@ -40,9 +40,21 @@ async function handler(req: Request): Promise<Response> {
         }
         const remoteURL = imagesArray[id];
         console.log(`send ${id} of ${imagesArray.length} with ${req.url}`);
+        
+        // 验证URL格式
+        let isValidURL = false;
+        try {
+            new URL(remoteURL);
+            isValidURL = true;
+        } catch (e) {
+            console.error(`Invalid URL: ${remoteURL}`);
+        }
+        
+        const targetURL = isValidURL ? remoteURL : 'https://http.cat/503';
+        
         // 调整发送格式json/raw/302
         if (searchParams.has("json")) {
-            return new Response(JSON.stringify({ id, url: remoteURL }), {
+            return new Response(JSON.stringify({ id, url: targetURL }), {
                 headers: {
                     "access-control-allow-origin": "*",
                     "content-type": "application/json; charset=utf-8",
@@ -50,7 +62,10 @@ async function handler(req: Request): Promise<Response> {
                 },
             });
         } else if (searchParams.has("raw")) {
-            return await fetch(remoteURL, {
+            if (!isValidURL) {
+                return new Response("Invalid image URL", { status: 502 });
+            }
+            return await fetch(targetURL, {
                 headers: {
                     Referer: "https://www.pixiv.net/",
                     "User-Agent": "PixivIOSApp/6.7.1 (iOS 10.3.1; iPhone8,1)",
@@ -60,7 +75,7 @@ async function handler(req: Request): Promise<Response> {
             return new Response(null, {
                 status: 302,
                 headers: {
-                    location: remoteURL,
+                    location: targetURL,
                     "cache-control": "no-cache",
                 },
             });

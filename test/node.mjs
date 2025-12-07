@@ -37,6 +37,17 @@ export default async function (req /*: http.IncomingMessage*/, res /*: http.Serv
     }
     const remoteURL = imagesArray[id];
     console.log(`send ${id} of ${imagesArray.length} with ${req.url}`);
+    
+    // 验证URL格式
+    let isValidURL = false;
+    try {
+        new URL(remoteURL);
+        isValidURL = true;
+    } catch (e) {
+        console.error(`Invalid URL: ${remoteURL}`);
+        isValidURL = false;
+    }
+    
     // 调整发送格式json/raw/302
     if (searchParams.has("json")) {
         res.writeHead(200, {
@@ -44,9 +55,16 @@ export default async function (req /*: http.IncomingMessage*/, res /*: http.Serv
             "Access-Control-Allow-Origin": "*",
             "Cache-Control": "no-cache",
         });
-        res.write(JSON.stringify({ id, url: remoteURL }));
+        res.write(JSON.stringify({ id, url: isValidURL ? remoteURL : "https://http.cat/503" }));
         res.end();
     } else if (searchParams.has("raw")) {
+        if (!isValidURL) {
+            res.writeHead(502, { "Content-Type": "text/plain" });
+            res.write("Invalid image URL");
+            res.end();
+            return;
+        }
+        
         try {
             console.log(`send raw ${remoteURL}`);
             const response = await axios({
@@ -71,8 +89,9 @@ export default async function (req /*: http.IncomingMessage*/, res /*: http.Serv
             res.end();
         }
     } else {
+        const redirectURL = isValidURL ? remoteURL : "https://http.cat/503";
         res.writeHead(302, {
-            Location: remoteURL,
+            Location: redirectURL,
             "Cache-Control": "no-cache",
         });
         res.end();
