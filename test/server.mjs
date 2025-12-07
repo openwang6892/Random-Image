@@ -16,19 +16,32 @@ const randomNum = (min, max) => Math.floor(Math.random() * (max - min + 1)) + mi
 // 读取图片URL列表
 let imagesArray = ["https://http.cat/503"];
 try {
-  if (fs.existsSync(recordPath)) {
-    const data = fs.readFileSync(recordPath, "utf8");
-    const lines = data.split(/\r|\n|\r\n/).filter((item) => item.length > 5);
+  if (recordPath.startsWith('http://') || recordPath.startsWith('https://')) {
+    // 如果是HTTP URL，使用axios获取
+    const { default: axios } = await import('axios');
+    const response = await axios.get(recordPath);
+    const lines = response.data.split(/\r|\n|\r\n/).filter((item) => item.length > 5);
     if (lines.length > 0) {
       imagesArray = lines;
     } else {
       console.warn(`url.csv file is empty, using default image`);
     }
   } else {
-    console.warn(`url.csv file not found at ${recordPath}, using default image`);
+    // 如果是本地文件路径，使用fs读取
+    if (fs.existsSync(recordPath)) {
+      const data = fs.readFileSync(recordPath, "utf8");
+      const lines = data.split(/\r|\n|\r\n/).filter((item) => item.length > 5);
+      if (lines.length > 0) {
+        imagesArray = lines;
+      } else {
+        console.warn(`url.csv file is empty, using default image`);
+      }
+    } else {
+      console.warn(`url.csv file not found at ${recordPath}, using default image`);
+    }
   }
 } catch (err) {
-  console.error("Error reading url.csv file:", err);
+  console.error("Error reading image list:", err.message);
 }
 
 // 创建并启动服务器

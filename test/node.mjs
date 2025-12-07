@@ -1,17 +1,38 @@
 import axios from "axios";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
 // 需要先安装 axios
 // 填入环境变量，或者修改下面的地址，这个地址应该返回一个文本文件，每行一个图片地址
 const recordURL = process.env.RECORD_URL || "./url.csv";
 
-/*
- * Program Start
- */
+// 获取当前文件的目录路径
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const randomNum = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const imagesArray = ["https://http.cat/503"];
+
+// 根据URL类型选择读取方式
 (async () => {
-    const text = await axios.get(recordURL).then((res) => res.data);
-    const imgs = text.split(/\r|\n|\r\n/).filter((item) => item.length > 5);
-    imagesArray.splice(0, 1, ...imgs);
+    let text = "";
+    try {
+        if (recordURL.startsWith('http://') || recordURL.startsWith('https://')) {
+            // 如果是HTTP URL，使用axios获取
+            text = await axios.get(recordURL).then((res) => res.data);
+        } else {
+            // 如果是本地文件路径，使用fs读取
+            const filePath = path.resolve(__dirname, recordURL);
+            text = fs.readFileSync(filePath, "utf8");
+        }
+        const imgs = text.split(/\r|\n|\r\n/).filter((item) => item.length > 5);
+        if (imgs.length > 0) {
+            imagesArray.splice(0, 1, ...imgs);
+        }
+    } catch (err) {
+        console.error("Error reading image list:", err.message);
+    }
 })();
 
 export default async function (req /*: http.IncomingMessage*/, res /*: http.ServerResponse*/) {
