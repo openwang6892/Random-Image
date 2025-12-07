@@ -16,7 +16,13 @@ const imagesArray = await fetch(Deno.env.get("RECORD_URL") || recordURL)
     .then((text) => text.split(/\r|\n|\r\n/).filter((url) => url.length > 5));
 
 async function handler(req: Request): Promise<Response> {
-    const url = new URL(req.url);
+    let url;
+    try {
+        url = new URL(req.url);
+    } catch (e) {
+        console.error(`Invalid request URL: ${req.url}`, e.message);
+        return new Response("Bad Request: Invalid URL format", { status: 400 });
+    }
     if (url.pathname === "/favicon.ico") {
         // return new Response(null, { status: 404 });
         return await fetch("https://deno.land/favicon.ico");
