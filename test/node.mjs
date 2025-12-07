@@ -30,10 +30,10 @@ export default async function (req /*: http.IncomingMessage*/, res /*: http.Serv
         stringNumber = searchParams.get("id") ?? "";
     }
     let id = Number(stringNumber);
-    if (stringNumber.length === 0 || Number.isNaN(id)) {
+    if (stringNumber.length === 0 || Number.isNaN(id) || id < 0) {
         id = randomNum(0, imagesArray.length - 1);
     } else {
-        if (id < 0 || id >= imagesArray.length) id = randomNum(0, imagesArray.length - 1);
+        if (id >= imagesArray.length) id = randomNum(0, imagesArray.length - 1);
     }
     const remoteURL = imagesArray[id];
     console.log(`send ${id} of ${imagesArray.length} with ${req.url}`);
@@ -47,22 +47,29 @@ export default async function (req /*: http.IncomingMessage*/, res /*: http.Serv
         res.write(JSON.stringify({ id, url: remoteURL }));
         res.end();
     } else if (searchParams.has("raw")) {
-        console.log(`send raw ${remoteURL}`);
-        const response = await axios({
-            method: "get",
-            url: remoteURL,
-            responseType: "stream",
-            headers: {
-                Referer: "https://www.pixiv.net/",
-                "User-Agent": "PixivIOSApp/6.7.1 (iOS 10.3.1; iPhone8,1)",
-            }, // 这个Header允许调用pixiv上面的图片
-        });
-        res.writeHead(200, {
-            "Content-Type": response.headers["content-type"],
-            "Access-Control-Allow-Origin": "*",
-            "Cache-Control": "no-cache",
-        });
-        response.data.pipe(res);
+        try {
+            console.log(`send raw ${remoteURL}`);
+            const response = await axios({
+                method: "get",
+                url: remoteURL,
+                responseType: "stream",
+                headers: {
+                    Referer: "https://www.pixiv.net/",
+                    "User-Agent": "PixivIOSApp/6.7.1 (iOS 10.3.1; iPhone8,1)",
+                }, // 这个Header允许调用pixiv上面的图片
+            });
+            res.writeHead(200, {
+                "Content-Type": response.headers["content-type"] || "image/jpeg",
+                "Access-Control-Allow-Origin": "*",
+                "Cache-Control": "no-cache",
+            });
+            response.data.pipe(res);
+        } catch (error) {
+            console.error("Error fetching image:", error.message);
+            res.writeHead(502, { "Content-Type": "text/plain" });
+            res.write("Error fetching image");
+            res.end();
+        }
     } else {
         res.writeHead(302, {
             Location: remoteURL,

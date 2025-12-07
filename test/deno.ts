@@ -31,10 +31,10 @@ async function handler(req: Request): Promise<Response> {
             stringNumber = searchParams.get("id") ?? "";
         }
         let id = Number(stringNumber);
-        if (stringNumber.length === 0 || Number.isNaN(id)) {
+        if (stringNumber.length === 0 || Number.isNaN(id) || id < 0) {
             id = randomNum(0, imagesArray.length - 1);
         } else {
-            if (id < 0 || id >= imagesArray.length) {
+            if (id >= imagesArray.length) {
                 id = randomNum(0, imagesArray.length - 1);
             }
         }

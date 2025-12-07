@@ -21,6 +21,8 @@ try {
     const lines = data.split(/\r|\n|\r\n/).filter((item) => item.length > 5);
     if (lines.length > 0) {
       imagesArray = lines;
+    } else {
+      console.warn(`url.csv file is empty, using default image`);
     }
   } else {
     console.warn(`url.csv file not found at ${recordPath}, using default image`);
@@ -76,10 +78,10 @@ const server = http.createServer(async (req, res) => {
       stringNumber = searchParams.get("id") ?? "";
     }
     let id = Number(stringNumber);
-    if (stringNumber.length === 0 || Number.isNaN(id)) {
+    if (stringNumber.length === 0 || Number.isNaN(id) || id < 0) {
       id = randomNum(0, imagesArray.length - 1);
     } else {
-      if (id < 0 || id >= imagesArray.length) id = randomNum(0, imagesArray.length - 1);
+      if (id >= imagesArray.length) id = randomNum(0, imagesArray.length - 1);
     }
     const remoteURL = imagesArray[id];
     console.log(`send ${id} of ${imagesArray.length} with ${req.url}`);
@@ -131,7 +133,7 @@ const server = http.createServer(async (req, res) => {
 </head>
 <body>
   <div class="container">
-    <img src="${remoteURL}" alt="全屏图片" onload="setTimeout(() => location.reload(), 30000);" onerror="setTimeout(() => location.reload(), 5000);">
+    <img src="${remoteURL}" alt="全屏图片">
   </div>
 </body>
 </html>`;
